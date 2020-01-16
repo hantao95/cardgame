@@ -55,4 +55,16 @@ public class StringUtil {
 			return r;
 		}
 	}
+
+	//判断数组是否存在空值
+	public static boolean strsEmplty(String[] strs){
+		for(String str:strs){
+			if(isEmpty(str)){
+				return true;
+			}else{
+				continue;
+			}
+		}
+		return false;
+	}
 }

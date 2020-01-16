@@ -4,13 +4,28 @@
     <meta charset="UTF-8"></meta>
     <title>游戏界面</title>
     <link href="" th:href="@{/static/asserts/css/game.css}" rel="stylesheet">
+    <script th:src="@{/webjars/jquery/3.3.1/jquery.js}"></script>
 </head>
 <body>
 <h3>聊天室</h3>
 <div class="chatwindow" id="message"></div>
 <input id="text" type="text" />
-<button onclick="send()">发送消息</button>
+<button onclick="send()">发送消息</button><button id="ready" onclick="ready('ready')">准备</button><button id="noready" onclick="ready('not ready')">取消准备</button>
 <hr />
+<table id="readywindow">
+    <tr>
+        <td width="150px"><div id="user0">玩家1</div></td>
+        <td width="150px"><div id="user1">玩家2</div></td>
+        <td width="150px"><div id="user2">玩家3</div></td>
+        <td width="150px"><div id="user3">玩家4</div></td>
+    </tr>
+    <tr>
+        <td width="150px"><div id="user0R">无</div></td>
+        <td width="150px"><div id="user1R">无</div></td>
+        <td width="150px"><div id="user2R">无</div></td>
+        <td width="150px"><div id="user3R">无</div></td>
+    </tr>
+</table>
 <script>
     var websocket = null;
     if('WebSocket' in window){
@@ -27,15 +42,45 @@
         setMessageInHtml("connection success！")
     }
     websocket.onmessage  = function(event){
-        setMessageInHtml(event.data);
+        var body = event.data;
+        var type = body.substring(0,body.indexOf("@"));
+        var other = body.substring(body.indexOf("@")+1);
+        switch (type){
+            case "chat":setMessageInHtml(other);break;
+            case "ready":reflushReady(other);break;
+        }
     }
     websocket.onclose = function(e){
         console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
         setMessageInHtml("closed websocket!")
     }
+    //离开页面时调用，包括跳转页面，关闭窗口
     window.onbeforeunload = function(){
         clos();
     }
+    //准备/取消准备按钮
+    function ready(status){
+        var type = "ready";
+        var userid = "[[${session.userid}]]";
+        var roomid = "[[${session.roomid}]]";
+        var seatid = 0;
+        switch (userid){
+            case $("#user0").html():seatid = 0;break;
+            case $("#user1").html():seatid = 1;break;
+            case $("#user2").html():seatid = 2;break;
+            case $("#user3").html():seatid = 3;break;
+        }
+        websocket.send(type+'@'+userid+'@'+roomid+'@'+seatid+'@'+status);
+    }
+    //刷新准备状态
+    function reflushReady(info) {
+        console.log(info);
+        var strs = info.split("@");
+        seatid = strs[1];
+        $("#user"+strs[1]).html(strs[0]);
+        $("#user"+strs[1]+"R").html(strs[2]);
+    }
+    //在聊天窗口展示信息
     function setMessageInHtml(message){
         var div = document.getElementById('message');
         div.innerHTML += message+'<br/>';
@@ -44,11 +89,13 @@
     function clos(){
         websocket.close(3000,"强制关闭");
     }
+    //发送聊天信息
     function send(){
+        var type = "chat";
         var msg = document.getElementById('text').value;
         var userid = "[[${session.userid}]]";
         var roomid = "[[${session.roomid}]]";
-        websocket.send(userid+'@'+roomid+'@'+msg);
+        websocket.send(type+'@'+userid+'@'+roomid+'@'+msg);
     }
 </script>
 </body>

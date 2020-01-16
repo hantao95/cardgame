@@ -8,13 +8,19 @@ import java.util.Objects;
  * 存放session数据
  */
 public class SessionInfo  {
+    //用户
     private String userid;
+    //房间
     private String roomid;
+    //座位号
+    private int seatid;
+    //websocket连接
     private Session session;
 
-    public SessionInfo(String userid,String roomid,Session session){
+    public SessionInfo(String userid,String roomid,int seatid,Session session){
         this.userid = userid;
         this.roomid = roomid;
+        this.seatid = seatid;
         this.session = session;
     }
 
@@ -30,6 +36,14 @@ public class SessionInfo  {
 
     public void setUserid(String userid) {
         this.userid = userid;
+    }
+
+    public int getSeatid() {
+        return seatid;
+    }
+
+    public void setSeatid(int seatid) {
+        this.seatid = seatid;
     }
 
     public String getRoomid() {

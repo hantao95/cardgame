@@ -1,30 +1,20 @@
 package com.ht.card.entities;
 
 public class Message {
-    private String roomid;
-    private String userid;
+    private String type;
     private String message;
 
-    public  Message(String userid,String roomid,String message){
+    public  Message(String type,String message){
         this.message = message;
-        this.userid = userid;
-        this.roomid = roomid;
+        this.type = type;
     }
 
-    public String getroomid() {
-        return roomid;
+    public String getType() {
+        return type;
     }
 
-    public void setroomid(String roomid) {
-        this.roomid = roomid;
-    }
-
-    public String getUserid() {
-        return userid;
-    }
-
-    public void setUserid(String userid) {
-        this.userid = userid;
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getMessage() {
