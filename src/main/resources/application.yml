@@ -1,0 +1,19 @@
+
+server:
+  port: 8080
+  servlet:
+    context-path: /ht
+spring:
+  thymeleaf:
+    cache: false
+  messages:
+    basename: i18n/card
+  devtools:
+    restart:
+      enabled: true
+      additional-paths: src/main/java #重启目录
+      exclude: WEB-INF/**
+    freemarker:
+      cache: false    #页面不加载缓存，修改即时生效
+  main:
+      allow-bean-definition-overriding: true #当遇到同样名字的时候，是否允许覆盖注册

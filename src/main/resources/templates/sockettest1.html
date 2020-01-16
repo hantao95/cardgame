@@ -1,0 +1,54 @@
+<html>
+<head>
+    <meta charset="UTF-8"></meta>
+    <title>聊天室</title>
+</head>
+<body>
+<h3>聊天室</h3>
+<br />
+<input id="text" type="text" />
+<button onclick="send()">发送消息</button>
+<hr />
+<button onclick="clos()">关闭连接</button>
+<hr />
+<div id="message"></div>
+<script>
+    var websocket = null;
+    if('WebSocket' in window){
+        //防止生成新的session
+        var host = window.location.host;
+        websocket = new WebSocket("ws://"+host+"/ht/websocket/"+"[[${session.roomid}]]");
+    }else{
+        alert("您的浏览器不支持websocket");
+    }
+    websocket.onerror = function(){
+        setMessageInHtml("send error！");
+    }
+    websocket.onopen = function(){
+        setMessageInHtml("connection success！")
+    }
+    websocket.onmessage  = function(event){
+        setMessageInHtml(event.data);
+    }
+    websocket.onclose = function(e){
+        console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
+        setMessageInHtml("closed websocket!")
+    }
+    window.onbeforeunload = function(){
+        clos();
+    }
+    function setMessageInHtml(message){
+        document.getElementById('message').innerHTML += '<br/>'+message;
+    }
+    function clos(){
+        websocket.close(3000,"强制关闭");
+    }
+    function send(){
+        var msg = document.getElementById('text').value;
+        var userid = "[[${session.userid}]]";
+        var roomid = "[[${session.roomid}]]";
+        websocket.send(userid+'@'+roomid+'@'+msg);
+    }
+</script>
+</body>
+</html>

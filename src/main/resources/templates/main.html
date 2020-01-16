@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+	<head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <meta name="description" content="">
+        <meta name="author" content="">
+        <title>Signin Template for Bootstrap</title>
+        <!-- Bootstrap core CSS -->
+        <link href="asserts/css/bootstrap.min.css" th:href="@{/webjars/bootstrap/4.2.1/css/bootstrap.css}" rel="stylesheet">
+        <!-- Custom styles for this template -->
+        <link href="asserts/css/signin.css" th:href="@{/asserts/css/signin.css}" rel="stylesheet">
+        <script th:src="@{/webjars/jquery/3.3.1/jquery.js}"></script>
+    </head>
+
+	<body class="text-center">
+	<h1 class="h3 mb-3 font-weight-normal" th:text="#{main.hello}+','+${session.userid}"></h1>
+    <table>
+        <tr>
+            <th><button class="btn btn-lg btn-primary btn-block" onclick="room(1)">房间1</button></th>
+            <th><button class="btn btn-lg btn-primary btn-block" onclick="room(2)">房间2</button></th>
+            <th><button class="btn btn-lg btn-primary btn-block" onclick="room(3)">房间3</button></th>
+        </tr>
+    </table>
+	</body>
+	<script type="text/javascript">
+        function room(number) {
+            $.ajax({
+                "url":"../ht/chat/room",
+                "":"application/json;charset=UTF-8",
+                "data":"roomid="+number,
+                "dataType":"json",
+                "type":"post",
+                "success":function(data) {
+                    console.log(data);
+                    window.location.href = data.data;
+                },
+                "error":function (data) {
+                    alert("通讯异常");
+                }
+            });
+        }
+	</script>
+</html>
