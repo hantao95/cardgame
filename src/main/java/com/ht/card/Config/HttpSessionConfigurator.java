@@ -11,6 +11,7 @@ import  javax.websocket.server.HandshakeRequest ;
 import  javax.websocket.server.ServerEndpointConfig ;
 
 /**
+ * 使websocket中能够获取到httpsession
  * NAME : WebChat/com.amayadream.webchat.websocket
  * Author : Amayadream
  * Date : 2016.01.12 17:10
@@ -27,7 +28,6 @@ public  class  HttpSessionConfigurator  extends  ServerEndpointConfig . Configur
             HttpSession session = (HttpSession) request.getHttpSession();
             sec.getUserProperties().put("session", session);
         }
-        sec.getUserProperties().put("name", "小强");
         super.modifyHandshake(sec, request, response);
     }
     @Bean
