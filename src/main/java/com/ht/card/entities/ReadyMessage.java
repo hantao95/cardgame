@@ -1,5 +1,8 @@
 package com.ht.card.entities;
 
+/**
+ * 准备信息，用于保存每个玩家的准备情况
+ */
 public class ReadyMessage {
     private String userid;
     private String roomid;

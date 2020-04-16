@@ -4,10 +4,7 @@ package com.ht.card.websocket;
 import com.ht.card.Config.HttpSessionConfigurator;
 import com.ht.card.Constant.CardConstant;
 import com.ht.card.Util.StringUtil;
-import com.ht.card.entities.ChatMessage;
-import com.ht.card.entities.Message;
-import com.ht.card.entities.ReadyMessage;
-import com.ht.card.entities.SessionInfo;
+import com.ht.card.entities.*;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpSession;
@@ -15,8 +12,6 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,7 +29,10 @@ public class WebSocket {
     public static Map<String,String[]> roomMap = new ConcurrentHashMap<>();
     //客户，状态
     public static Map<String,ReadyMessage> statusMap = new ConcurrentHashMap<>();
-
+    //房间，牌组
+    public static Map<String,GameInfo> gameInfoMap = new ConcurrentHashMap<>();
+    //房间，抢地主状态
+    public static Map<String,LandownerInfo> landownerMap = new ConcurrentHashMap<>();
     /**
      * 连接建立成功调用的方法
      *
@@ -48,8 +46,8 @@ public class WebSocket {
         String[] userlist = roomMap.get(roomid);
         try {
             if(null==userlist){
-                //一个房间最多4个人
-                userlist = new String[4];
+                //一个房间的人数
+                userlist = new String[3];
                 userlist[0]=userid;
                 seatid = 0;
             }else{
@@ -62,7 +60,7 @@ public class WebSocket {
                         userMap.get(userid).getSession().getBasicRemote().sendText("chat@"+"你已在别处登录");
                         userMap.get(userid).getSession().close();
                     }
-                    for(int i=0;i<4;i++){
+                    for(int i=0;i<userlist.length;i++){
                         if(StringUtil.isEmpty(userlist[i])){
                             userlist[i] = userid;
                             seatid = i;
@@ -73,7 +71,7 @@ public class WebSocket {
             }
             roomMap.put(roomid,userlist);
             userMap.put(userid,new SessionInfo(userid,roomid,seatid,session));
-            ReadyMessage readyMessage = new ReadyMessage(userid,roomid,seatid,"not Ready");
+            ReadyMessage readyMessage = new ReadyMessage(userid,roomid,seatid,"not ready");
             statusMap.put(userid,readyMessage);
             //发送进入提示，并且对新加入的连接发送当前所有人的准备状态
             for(String id:userlist){
@@ -120,16 +118,16 @@ public class WebSocket {
             ready.setStatus("无");
             try{
                 for(String user:roomMap.get(roomid)){
-                    if(StringUtil.isEmpty(user))
-                        continue;;
+                    if(StringUtil.isEmpty(user)){
+                        continue;
+                    }
                     userMap.get(user).getSession().getBasicRemote().sendText("chat@"+userid+"退出了");
                     userMap.get(user).getSession().getBasicRemote().sendText("ready@"+ready.toString());
                 }
                 statusMap.remove(userid);
             }catch (IOException e){
                 e.printStackTrace();
-        }
-
+            }
         }
     }
 
@@ -146,21 +144,59 @@ public class WebSocket {
             if (CardConstant.messagetype_chat.equals(body.getType())){
                 ChatMessage chatinfo = MessageResolve.ResolveChat(body.getMessage());
                 String roomid = chatinfo.getroomid();
-
-                    for(String user:roomMap.get(roomid)){
-                        if(StringUtil.isEmpty(user))
-                            continue;;
-                        userMap.get(user).getSession().getBasicRemote().sendText("chat@"+chatinfo.toString());
-                    }
+                //给房间所有人发送聊天信息
+                for(String user:roomMap.get(roomid)){
+                    if(StringUtil.isEmpty(user))
+                        continue;
+                    userMap.get(user).getSession().getBasicRemote().sendText("chat@"+chatinfo.toString());
+                }
             }else if(CardConstant.messagetype_ready.equals(body.getType())){
                  ReadyMessage readyInfo = MessageResolve.ResolveReady(body.getMessage());
                  statusMap.put(readyInfo.getUserid(),readyInfo);
                  String roomid = readyInfo.getRoomid();
+                boolean gamestart = true;
+                //给房间所有人发送准备信息
                 for(String user:roomMap.get(roomid)){
-                    if(StringUtil.isEmpty(user))
-                        continue;;
+                    if(StringUtil.isEmpty(user)){
+                        gamestart = false;
+                        continue;
+                    }
                     userMap.get(user).getSession().getBasicRemote().sendText("ready@"+readyInfo.toString());
+                    if ("not ready".equals(statusMap.get(user).getStatus())){
+                        gamestart = false;
+                    }
                 }
+                if(gamestart){
+                    GameInfo gameInfo = new GameInfo();
+                    gameInfoMap.put(roomid,gameInfo);
+                    //给房间所有人发送手牌信息
+                    for(String user:roomMap.get(roomid)){
+                        if(StringUtil.isEmpty(user)){
+                            continue;
+                        }
+                        SessionInfo sInfo = userMap.get(user);
+                        sInfo.getSession().getBasicRemote().sendText("card@"+gameInfo.getPlayList(sInfo.getSeatid())+"@"+gameInfo.getCardNumber());
+                    }
+                }
+            }else if(CardConstant.getMessagetype_landowner.equals(body.getType())){
+                LandownerMessage landownerMessage = MessageResolve.ResolveLandowner(body.getMessage());
+                String roomid = landownerMessage.getRoomid();
+                LandownerInfo landownerInfo = new LandownerInfo();
+                if (landownerMap.get(roomid)!=null){
+                    landownerInfo=landownerMap.get(roomid);
+                }else{
+                    landownerMap.put(roomid,landownerInfo);
+                }
+                landownerInfo.doLandowner(landownerMessage);
+                //给房间所有人发送抢地主信息
+                for(String user:roomMap.get(roomid)){
+                    if(StringUtil.isEmpty(user)){
+                        continue;
+                    }
+                    SessionInfo sInfo = userMap.get(user);
+                    sInfo.getSession().getBasicRemote().sendText("landowner@"+landownerInfo.toString());
+                }
+
             }
         }catch (IOException e){
             e.printStackTrace();

@@ -1,6 +1,7 @@
 package com.ht.card.Util;
 
 import java.text.DecimalFormat;
+import java.util.List;
 
 public class StringUtil {
 
@@ -51,7 +52,6 @@ public class StringUtil {
 					break;
 				}
 			}
-
 			return r;
 		}
 	}
@@ -66,5 +66,23 @@ public class StringUtil {
 			}
 		}
 		return false;
+	}
+
+	//将String list 转为 String
+	public static String StringlistToString(List<String> list){
+		String  str0="";
+		for (String str:list){
+			str0+=str;
+		}
+		return str0;
+	}
+
+	//将Integer list 转为 String
+	public static String IntegerlistToString(List<Integer> list){
+		String  str0="";
+		for (Integer str:list){
+			str0+="|"+String.valueOf(str);
+		}
+		return str0.substring(1);
 	}
 }
