@@ -17,11 +17,7 @@ public class ChatController {
     public ResponseResult intoRoom(@RequestParam("roomid")String roomid, HttpSession session){
         session.setAttribute("roomid",roomid);
         ResponseResult rr = new ResponseResult<String>();
-        if(roomid.equals("3")){
-            rr.setData("/ht/gamemain.html");
-        }else{
-            rr.setData("/ht/sockettest1.html");
-        }
+        rr.setData("/ht/gamemain.html");
         return rr;
     }
 }
