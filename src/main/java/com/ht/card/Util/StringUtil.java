@@ -83,6 +83,9 @@ public class StringUtil {
 		for (Integer str:list){
 			str0+="|"+String.valueOf(str);
 		}
+		if("".equals(str0)){
+			return  str0;
+		}
 		return str0.substring(1);
 	}
 }

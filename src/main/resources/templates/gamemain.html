@@ -62,6 +62,8 @@
 </table>
 <script>
     var websocket = null;
+    var userid = "[[${session.userid}]]";
+    var roomid = "[[${session.roomid}]]";
     var values =['3','3','3','3','4','4','4','4','5','5','5','5','6','6','6','6','7','7','7','7','8','8','8','8','9','9','9','9','10','10','10','10','J','J','J','J','Q','Q','Q','Q','K','K','K','K','A','A','A','A','2','2','2','2','small','big'];
     var types =['黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','king','king'];
     var seats = ['1','2','0']; //用数组实现链表效果，如果有更好的方式后期优化。
@@ -80,6 +82,7 @@
     }
     websocket.onmessage  = function(event){
         var body = event.data;
+        console.log(body);
         var type = body.substring(0,body.indexOf("@"));
         var other = body.substring(body.indexOf("@")+1);
         switch (type){
@@ -110,21 +113,30 @@
 
     //抢地主逻辑  info: landowner@dolandowner@seat
     function getLandowner(info){
+        debugger;
         var strs = info.split("@");
         var landowner = strs[0];
         var dolandowners = strs[1];
         var seatids=strs[2].split("|");
         if(-1==landowner){
-            if("[[${session.userid}]]"==$("#user"+seats[seatids[seatids.length]])){
+            if(userid==$("#user"+seats[seatids[seatids.length-1]]).html()){
                 showBotton(2);
             }else{
                 showBotton(0);
             }
         }else if(-10000==landowner){
             alert('没有人叫地主');
+            showBotton(0);
+            readyShow();
+            $("#noready").click();
         }else{
             var tmp = $("#user"+landowner).html();
             $("#user"+landowner).css("color","red");
+            if(userid==tmp){
+                showBotton(3);
+            }else{
+                showBotton(0);
+            }
         }
 
     }
@@ -158,13 +170,13 @@
             html+='<td width="20px" height="150px"><div id="card1">'+values[handcard[i]-1]+'<br/>'+types[handcard[i]-1]+'</div><input name="handcard" value="'+handcard[i]+'" type="checkbox"></td>'
         }
         $("#myhand").html(html);
-        if("[[${session.userid}]]"==$("#user0").html()){
+        if(userid==$("#user0").html()){
             $("#right").html($("#user1").html()+"<br/>"+cardnumber[1]);
             $("#left").html($("#user2").html()+"<br/>"+cardnumber[2]);
-        }else if("[[${session.userid}]]"==$("#user1").html()){
+        }else if(userid==$("#user1").html()){
             $("#right").html($("#user2").html()+"<br/>"+cardnumber[2]);
             $("#left").html($("#user0").html()+"<br/>"+cardnumber[0]);
-        }else if("[[${session.userid}]]"==$("#user2").html()){
+        }else if(userid==$("#user2").html()){
             $("#right").html($("#user0").html()+"<br/>"+cardnumber[0]);
             $("#left").html($("#user1").html()+"<br/>"+cardnumber[1]);
         }
@@ -198,8 +210,6 @@
     //准备/取消准备按钮
     function ready(status){
         var type = "ready";
-        var userid = "[[${session.userid}]]";
-        var roomid = "[[${session.roomid}]]";
         var seatid = getseatid(userid);
         websocket.send(type+'@'+userid+'@'+roomid+'@'+seatid+'@'+status);
     }
@@ -236,15 +246,11 @@
     function send(){
         var type = "chat";
         var msg = document.getElementById('text').value;
-        var userid = "[[${session.userid}]]";
-        var roomid = "[[${session.roomid}]]";
         websocket.send(type+'@'+userid+'@'+roomid+'@'+msg);
     }
     //发送抢地主信息
     function sendLandowner(msg){
         var type = "landowner";
-        var userid = "[[${session.userid}]]";
-        var roomid = "[[${session.roomid}]]";
         var seatid = getseatid(userid);
         websocket.send(type+'@'+userid+'@'+roomid+'@'+seatid+'@'+msg);
     }
