@@ -7,7 +7,6 @@
     <script th:src="@{/webjars/jquery/3.3.1/jquery.js}"></script>
 </head>
 <body>
-<h3>聊天室</h3>
 <div class="chatwindow" id="message"></div>
 <input id="text" type="text" />
 <button onclick="send()">发送消息</button><button id="ready" onclick="ready('ready')">准备</button><button id="noready" onclick="ready('not ready')">取消准备</button>
@@ -17,17 +16,55 @@
         <td width="150px"><div id="user0">玩家1</div></td>
         <td width="150px"><div id="user1">玩家2</div></td>
         <td width="150px"><div id="user2">玩家3</div></td>
-        <td width="150px"><div id="user3">玩家4</div></td>
+        <!--<td width="150px"><div id="user3">玩家4</div></td>-->
     </tr>
     <tr>
         <td width="150px"><div id="user0R">无</div></td>
         <td width="150px"><div id="user1R">无</div></td>
         <td width="150px"><div id="user2R">无</div></td>
-        <td width="150px"><div id="user3R">无</div></td>
+        <!--<td width="150px"><div id="user3R">无</div></td>-->
+    </tr>
+</table>
+
+<div id="desktop" border="1" align="center" >
+    <div id = "left"  style="float:left;width: 8%;height: 200px">1</div>
+    <div id = "leftcard"  style="float:left;width: 28%;height: 200px">2</div>
+    <div id = "midcard"  style="float:left;width: 28%;height: 200px">3</div>
+    <div id = "rightcard"  style="float:left;width: 28%;height: 200px">4</div>
+    <div id = "right"  style="float:left;width: 8%;height: 200px">5</div>
+</div>
+
+<div id="buttons1" align="center" style="display: none;">
+    <button onclick="sendLandowner('Y')" >叫地主</button>
+    <button onclick="sendLandowner('N')" >不叫</button>
+</div>
+<div id="buttons2" align="center" style="display: none;">
+    <button onclick="sendLandowner('Y')" >抢地主</button>
+    <button onclick="sendLandowner('N')" >不抢</button>
+</div>
+<div id="buttons3" align="center" style="display: none;">
+    <button onclick="" >出牌</button>
+    <button onclick="" >不要</button>
+</div>
+<div id="buttons4" align="center" style="display: none;">
+    <button onclick="putout()" >出牌</button>
+</div>
+
+<table id="hand" border="1" align="center" >
+    <tr id="myhand" width="400px" height="170px">
+        <td width="400px" align="center"> <div >手牌区</div></td>
+        <!--<td width="20px" height="150px"><div id="card1">A<br/>红心</div><input name="handcard" value="1" type="checkbox"></td>-->
+        <!--<td width="20px" height="150px"><div id="card2">2<br/>红心</div><input name="handcard" value="2" type="checkbox"></td>-->
+        <!--<td width="20px" height="150px"><div id="card3">3<br/>红心</div><input name="handcard" value="3" type="checkbox"></td>-->
+        <!--<td width="20px" height="150px"><div id="card4">4<br/>红心</div><input name="handcard" value="4" type="checkbox"></td>-->
+        <!--<td width="70px" height="150px"><div id="card5">5<br/>红心</div><input name="handcard" value="5" type="checkbox"></td>-->
     </tr>
 </table>
 <script>
     var websocket = null;
+    var values =['3','3','3','3','4','4','4','4','5','5','5','5','6','6','6','6','7','7','7','7','8','8','8','8','9','9','9','9','10','10','10','10','J','J','J','J','Q','Q','Q','Q','K','K','K','K','A','A','A','A','2','2','2','2','small','big'];
+    var types =['黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','黑桃','红心','梅花','方块','king','king'];
+    var seats = ['1','2','0']; //用数组实现链表效果，如果有更好的方式后期优化。
     if('WebSocket' in window){
         //防止生成新的session
         var host = window.location.host;
@@ -39,7 +76,7 @@
         setMessageInHtml("send error！");
     }
     websocket.onopen = function(){
-        setMessageInHtml("connection success！")
+        setMessageInHtml("connection success！");
     }
     websocket.onmessage  = function(event){
         var body = event.data;
@@ -48,30 +85,125 @@
         switch (type){
             case "chat":setMessageInHtml(other);break;
             case "ready":reflushReady(other);break;
+            case "card":readyhidden();showCard(other);break;
+            case "landowner":getLandowner(other);break;
         }
     }
     websocket.onclose = function(e){
-        console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean)
-        setMessageInHtml("closed websocket!")
+        console.log('websocket 断开: ' + e.code + ' ' + e.reason + ' ' + e.wasClean);
+        setMessageInHtml("closed websocket!");
     }
     //离开页面时调用，包括跳转页面，关闭窗口
     window.onbeforeunload = function(){
         clos();
     }
+    //出牌
+    //TODO
+    function putout() {
+        var checked = "";
+        $('input[name="handcard"]:checked').each(function() {
+            checked+=$(this).val()+',';
+        });
+        checked = checked.substring(0,checked.length-1);
+        alert(checked);
+    }
+
+    //抢地主逻辑  info: landowner@dolandowner@seat
+    function getLandowner(info){
+        var strs = info.split("@");
+        var landowner = strs[0];
+        var dolandowners = strs[1];
+        var seatids=strs[2].split("|");
+        if(-1==landowner){
+            if("[[${session.userid}]]"==$("#user"+seats[seatids[seatids.length]])){
+                showBotton(2);
+            }else{
+                showBotton(0);
+            }
+        }else if(-10000==landowner){
+            alert('没有人叫地主');
+        }else{
+            var tmp = $("#user"+landowner).html();
+            $("#user"+landowner).css("color","red");
+        }
+
+    }
+
+
+    //按钮显示
+    function showBotton(num){
+        $("#buttons1").hide();
+        $("#buttons2").hide();
+        $("#buttons3").hide();
+        $("#buttons4").hide();
+        switch (num){
+            case 1:$("#buttons1").show();break;
+            case 2:$("#buttons2").show();break;
+            case 3:$("#buttons3").show();break;
+            case 4:$("#buttons4").show();break;
+            default:;
+        }
+
+    }
+
+    //展示手牌
+    function showCard(info) {
+        console.log(info);
+        var strs = info.split("@");
+        var html = "";
+        var handcard = strs[0].split("|").sort(sortNumber);
+        console.log(handcard);
+        var cardnumber = strs[1].split("|");
+        for(var i=0 ;i<handcard.length ;i++){
+            html+='<td width="20px" height="150px"><div id="card1">'+values[handcard[i]-1]+'<br/>'+types[handcard[i]-1]+'</div><input name="handcard" value="'+handcard[i]+'" type="checkbox"></td>'
+        }
+        $("#myhand").html(html);
+        if("[[${session.userid}]]"==$("#user0").html()){
+            $("#right").html($("#user1").html()+"<br/>"+cardnumber[1]);
+            $("#left").html($("#user2").html()+"<br/>"+cardnumber[2]);
+        }else if("[[${session.userid}]]"==$("#user1").html()){
+            $("#right").html($("#user2").html()+"<br/>"+cardnumber[2]);
+            $("#left").html($("#user0").html()+"<br/>"+cardnumber[0]);
+        }else if("[[${session.userid}]]"==$("#user2").html()){
+            $("#right").html($("#user0").html()+"<br/>"+cardnumber[0]);
+            $("#left").html($("#user1").html()+"<br/>"+cardnumber[1]);
+        }
+    }
+    //排序函数
+    function sortNumber(a,b)
+    {
+        return b - a
+    }
+    //显示准备状态，隐藏游戏界面
+    function readyShow() {
+        $("#ready").show();
+        $("#noready").show();
+        $("#readywindow").show();
+        $("#desktop").hide();
+        $("#hand").hide();
+    }
+
+    //隐藏准备状态，显示游戏界面
+    function readyhidden() {
+        $("#ready").hide();
+        $("#noready").hide();
+        $("#readywindow").show();
+        $("#desktop").show();
+        $("#hand").show();
+        if("[[${session.userid}]]"==$("#user0").html()){
+            showBotton(1);
+        }
+    }
+
     //准备/取消准备按钮
     function ready(status){
         var type = "ready";
         var userid = "[[${session.userid}]]";
         var roomid = "[[${session.roomid}]]";
-        var seatid = 0;
-        switch (userid){
-            case $("#user0").html():seatid = 0;break;
-            case $("#user1").html():seatid = 1;break;
-            case $("#user2").html():seatid = 2;break;
-            case $("#user3").html():seatid = 3;break;
-        }
+        var seatid = getseatid(userid);
         websocket.send(type+'@'+userid+'@'+roomid+'@'+seatid+'@'+status);
     }
+
     //刷新准备状态
     function reflushReady(info) {
         console.log(info);
@@ -89,6 +221,17 @@
     function clos(){
         websocket.close(3000,"强制关闭");
     }
+
+    //获取座位号
+    function getseatid(userid){
+        switch (userid){
+            case $("#user0").html():return 0;
+            case $("#user1").html():return 1;
+            case $("#user2").html():return 2;
+            case $("#user3").html():return 3;
+        }
+    }
+
     //发送聊天信息
     function send(){
         var type = "chat";
@@ -97,6 +240,20 @@
         var roomid = "[[${session.roomid}]]";
         websocket.send(type+'@'+userid+'@'+roomid+'@'+msg);
     }
+    //发送抢地主信息
+    function sendLandowner(msg){
+        var type = "landowner";
+        var userid = "[[${session.userid}]]";
+        var roomid = "[[${session.roomid}]]";
+        var seatid = getseatid(userid);
+        websocket.send(type+'@'+userid+'@'+roomid+'@'+seatid+'@'+msg);
+    }
+
+    function init(){
+        readyShow();
+    }
+
+    init();
 </script>
 </body>
 </html>
