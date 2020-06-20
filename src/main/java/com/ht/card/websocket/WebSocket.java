@@ -12,6 +12,7 @@ import javax.websocket.*;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -169,14 +170,10 @@ public class WebSocket {
                 if(gamestart){
                     GameInfo gameInfo = new GameInfo();
                     gameInfoMap.put(roomid,gameInfo);
+                    //给房间所有人发送游戏开始
+                    sendMessage(roomid,gameInfo,"start@");
                     //给房间所有人发送手牌信息
-                    for(String user:roomMap.get(roomid)){
-                        if(StringUtil.isEmpty(user)){
-                            continue;
-                        }
-                        SessionInfo sInfo = userMap.get(user);
-                        sInfo.getSession().getBasicRemote().sendText("card@"+gameInfo.getPlayList(sInfo.getSeatid())+"@"+gameInfo.getCardNumber());
-                    }
+                    showhandcard(roomid,gameInfo);
                 }
             }else if(CardConstant.getMessagetype_landowner.equals(body.getType())){
                 LandownerMessage landownerMessage = MessageResolve.ResolveLandowner(body.getMessage());
@@ -188,6 +185,11 @@ public class WebSocket {
                     landownerMap.put(roomid,landownerInfo);
                 }
                 landownerInfo.doLandowner(landownerMessage);
+                //将底牌给地主,然后刷新手牌
+                if(landownerInfo.getLandowner()!=-1&&landownerInfo.getLandowner()!=-10000){
+                    gameInfoMap.get(roomid).landowner(landownerInfo.getLandowner());
+                    showhandcard(roomid,gameInfoMap.get(roomid));
+                }
                 //给房间所有人发送抢地主信息
                 for(String user:roomMap.get(roomid)){
                     if(StringUtil.isEmpty(user)){
@@ -196,6 +198,54 @@ public class WebSocket {
                     SessionInfo sInfo = userMap.get(user);
                     sInfo.getSession().getBasicRemote().sendText("landowner@"+landownerInfo.toString());
                 }
+                if(landownerInfo.getLandowner()!=-1){
+                    landownerInfo.clear(); //一轮抢地主结束后 清空记录
+                }
+            }else if(CardConstant.messagetype_play.equals(body.getType())){
+                GameMessage gameMessage = MessageResolve.ResolveGame(body.getMessage());
+                String roomid = gameMessage.getRoomid();
+                String userid = gameMessage.getUserid();
+                Integer seatid = gameMessage.getSeatid();
+                List<Integer> putoutCard = gameMessage.getCardList();
+                CardType putCardType = GameLogic.checkcard(putoutCard);
+                if(putCardType==null&&CardType.CardType_Null.equals(gameInfoMap.get(roomid).getCardType())){
+                    //出牌失败
+                    SessionInfo sInfo = userMap.get(userid);
+                    sInfo.getSession().getBasicRemote().sendText("putcard@error_0@"+gameMessage.getSeatid()+"@不会玩就别玩");
+                }else if(putCardType!=null&&CardType.CardType_Null.equals(putCardType)){//不要
+                    GameInfo gameinto = gameInfoMap.get(roomid);
+                    gameinto.passtimeAdd();
+                    String passtime = "pass_1";
+                    if(gameinto.checkPass()){
+                        passtime = "pass_2";
+                        gameinto.passtimeClear();
+                        gameinto.setCardType(CardType.CardType_Null);
+                    }
+                    for(String user:roomMap.get(roomid)){
+                        if(StringUtil.isEmpty(user)){
+                            continue;
+                        }
+                        SessionInfo sInfo = userMap.get(user);
+                        sInfo.getSession().getBasicRemote().sendText("putcard@"+passtime+"@"+gameMessage.getSeatid()+"@-10000");
+                    }
+                }else{
+                    if(gameInfoMap.get(roomid).putoutcard(seatid,putoutCard,putCardType)){
+                        //出牌成功
+                        gameInfoMap.get(roomid).passtimeClear();
+                        for(String user:roomMap.get(roomid)){
+                            if(StringUtil.isEmpty(user)){
+                                continue;
+                            }
+                            SessionInfo sInfo = userMap.get(user);
+                            sInfo.getSession().getBasicRemote().sendText("putcard@success@"+gameMessage.getSeatid()+"@"+gameMessage.getCards());
+                        }
+                    }else{
+                        //出牌失败
+                        SessionInfo sInfo = userMap.get(userid);
+                        sInfo.getSession().getBasicRemote().sendText("putcard@error_1@"+gameMessage.getSeatid()+"@牌型不对");
+                    }
+                }
+                showhandcard(roomid,gameInfoMap.get(roomid));
 
             }
         }catch (IOException e){
@@ -213,5 +263,33 @@ public class WebSocket {
     @OnError
     public void onError(Session session, Throwable error) {
         System.out.println("发生错误");
+        System.out.println(error.getMessage());
+        error.printStackTrace();
+    }
+
+    /**
+     * 发送手牌信息
+     */
+    public void showhandcard(String roomid,GameInfo gameInfo) throws IOException{
+        for(String user:roomMap.get(roomid)){
+            if(StringUtil.isEmpty(user)){
+                continue;
+            }
+            SessionInfo sInfo = userMap.get(user);
+            sInfo.getSession().getBasicRemote().sendText("card@"+gameInfo.getPlayList(sInfo.getSeatid())+"@"+gameInfo.getCardNumber());
+        }
+    }
+
+    /**
+     * 给房间所有人发送信息
+     */
+    public void sendMessage(String roomid,GameInfo gameInfo,String message) throws IOException{
+        for(String user:roomMap.get(roomid)){
+            if(StringUtil.isEmpty(user)){
+                continue;
+            }
+            SessionInfo sInfo = userMap.get(user);
+            sInfo.getSession().getBasicRemote().sendText(message);
+        }
     }
 }

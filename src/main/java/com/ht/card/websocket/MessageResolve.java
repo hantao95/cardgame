@@ -1,9 +1,6 @@
 package com.ht.card.websocket;
 
-import com.ht.card.entities.ChatMessage;
-import com.ht.card.entities.LandownerMessage;
-import com.ht.card.entities.Message;
-import com.ht.card.entities.ReadyMessage;
+import com.ht.card.entities.*;
 
 public class MessageResolve {
     //解析信息
@@ -28,9 +25,18 @@ public class MessageResolve {
 
     //解析抢地主信息
     public static LandownerMessage ResolveLandowner(String message){
-        //userid@roomid@seatid@status
+        //userid@roomid@seatid@YoN
         String[] info = message.split("@");
         return new LandownerMessage(info[0],info[1],Integer.parseInt(info[2]),info[3]);
     }
+
+    //解析出牌信息
+    public static GameMessage ResolveGame(String message){
+        //userid@roomid@seatid@cardinfo
+        String[] info = message.split("@");
+        return new GameMessage(info[0],info[1],Integer.parseInt(info[2]),info[3]);
+    }
+
+
 }
 

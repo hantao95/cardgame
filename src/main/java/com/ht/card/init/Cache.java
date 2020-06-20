@@ -64,7 +64,6 @@ public class Cache {
         cardMap.put(52,new Card(52,"2",CardConstant.cardType_Orthogon));
         cardMap.put(53,new Card(53,"SKing",CardConstant.cardType_King));
         cardMap.put(54,new Card(54,"BKing",CardConstant.cardType_King));
-
-
     }
+
 }

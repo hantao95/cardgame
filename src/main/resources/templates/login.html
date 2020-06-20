@@ -21,7 +21,7 @@
 			<p style="color: red" th:text="${msg}" th:if="${not #strings.isEmpty(msg)}"></p>
 			<label class="sr-only" th:text="#{login.userid}">Username</label>	<input type="text" name="userid" class="form-control" placeholder="userid" th:placeholder="#{login.userid}"required="" autofocus="">
 			<label class="sr-only" th:text="#{login.password}">Password</label>
-			<input type="password" name="password" class="form-control" placeholder="Password" th:placeholder="#{login.password}"required="">
+			<input type="password" name="password" class="form-control" placeholder="Password" th:placeholder="#{login.password}"required="" value="123456">
             <h2 th:text="${param.userInfo} "th:unless="${param.userInfo == null}"></h2>
 			<div class="checkbox mb-3">
 				<label>

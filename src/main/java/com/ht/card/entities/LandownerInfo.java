@@ -23,6 +23,13 @@ public class LandownerInfo {
         landowner=GameLogic.checkLandowner(doLandowner,seatlist);
     }
 
+    //清空斗地主信息
+    public void clear(){
+        doLandowner.clear();
+        seatlist.clear();
+        landowner=-1;
+    }
+
     public String toString(){
 
         return landowner+"@"+StringUtil.StringlistToString(doLandowner)+"@"+StringUtil.IntegerlistToString(seatlist);

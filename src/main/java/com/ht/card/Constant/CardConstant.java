@@ -27,5 +27,25 @@ public class CardConstant {
     /**王**/
     public static  String cardType_King = "King";
 
+    //*****************牌型*****************//
+    /**炸弹**/
+    public static  String type_Boom = "Boom";
+    /**单张**/
+    public static  String type_Single = "Single";
+    /**对子**/
+    public static  String type_Pair = "Pair";
+    /**三张**/
+    public static  String type_Three = "Three";
+    /**三带二**/
+    public static  String type_ThreePair = "ThreePair";
+    /**顺子**/
+    public static  String type_Straight = "Straight";
+    /**连对**/
+    public static  String type_StraightPair = "StraightPair";
+    /**飞机**/
+    public static  String type_Plane = "Plane";
+    /**飞机带对子**/
+    public static  String type_PlanePair = "PlanePair";
+
 
 }

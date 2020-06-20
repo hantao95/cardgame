@@ -28,9 +28,9 @@
 
 <div id="desktop" border="1" align="center" >
     <div id = "left"  style="float:left;width: 8%;height: 200px">1</div>
-    <div id = "leftcard"  style="float:left;width: 28%;height: 200px">2</div>
-    <div id = "midcard"  style="float:left;width: 28%;height: 200px">3</div>
-    <div id = "rightcard"  style="float:left;width: 28%;height: 200px">4</div>
+    <div id = "leftcard"  style="float:left;width: 28%;height: 200px">1</div>
+    <div id = "midcard"  style="float:left;width: 28%;height: 200px">1</div>
+    <div id = "rightcard"  style="float:left;width: 28%;height: 200px">1</div>
     <div id = "right"  style="float:left;width: 8%;height: 200px">5</div>
 </div>
 
@@ -43,8 +43,8 @@
     <button onclick="sendLandowner('N')" >不抢</button>
 </div>
 <div id="buttons3" align="center" style="display: none;">
-    <button onclick="" >出牌</button>
-    <button onclick="" >不要</button>
+    <button onclick="putout()" >出牌</button>
+    <button onclick="pass()" >不要</button>
 </div>
 <div id="buttons4" align="center" style="display: none;">
     <button onclick="putout()" >出牌</button>
@@ -53,11 +53,6 @@
 <table id="hand" border="1" align="center" >
     <tr id="myhand" width="400px" height="170px">
         <td width="400px" align="center"> <div >手牌区</div></td>
-        <!--<td width="20px" height="150px"><div id="card1">A<br/>红心</div><input name="handcard" value="1" type="checkbox"></td>-->
-        <!--<td width="20px" height="150px"><div id="card2">2<br/>红心</div><input name="handcard" value="2" type="checkbox"></td>-->
-        <!--<td width="20px" height="150px"><div id="card3">3<br/>红心</div><input name="handcard" value="3" type="checkbox"></td>-->
-        <!--<td width="20px" height="150px"><div id="card4">4<br/>红心</div><input name="handcard" value="4" type="checkbox"></td>-->
-        <!--<td width="70px" height="150px"><div id="card5">5<br/>红心</div><input name="handcard" value="5" type="checkbox"></td>-->
     </tr>
 </table>
 <script>
@@ -88,7 +83,9 @@
         switch (type){
             case "chat":setMessageInHtml(other);break;
             case "ready":reflushReady(other);break;
-            case "card":readyhidden();showCard(other);break;
+            case "start":readyhidden();break;
+            case "card":showCard(other);break;
+            case "putcard":showputoutCard(other);break;
             case "landowner":getLandowner(other);break;
         }
     }
@@ -105,18 +102,76 @@
     function putout() {
         var checked = "";
         $('input[name="handcard"]:checked').each(function() {
-            checked+=$(this).val()+',';
+            checked+=$(this).val()+'|';
         });
+        if(checked == ""){
+            alert("请选择手牌");
+            return;
+        }
+        var seatid = getseatid(userid);
         checked = checked.substring(0,checked.length-1);
-        alert(checked);
+        type='play';
+        websocket.send(type+'@'+userid+'@'+roomid+'@'+seatid+'@'+checked);
+    }
+
+    function showputoutCard(info){
+        debugger;
+        var strs = info.split("@");
+        var issuccess = strs[0];
+        var seatid = strs[1];
+        var str = strs[2];
+        if(issuccess=='error_0'){
+            alert(str);
+            showBotton(4);
+            return;
+        }else if(issuccess=='error_1'){
+            alert(str);
+            showBotton(3);
+            return;
+        }else if(issuccess=='pass_1'){
+            if(seatid==getseatid(userid)){
+                showBotton(0);
+            }
+            if(seats[seatid]==getseatid(userid)){
+                showBotton(3);
+            }
+            return;
+        }else if(issuccess=='pass_2'){
+            if(seatid==getseatid(userid)){
+                showBotton(0);
+            }
+            if(seats[seatid]==getseatid(userid)){
+                showBotton(4);
+            }
+            return;
+        }else{
+            if(seatid==getseatid(userid)){
+                showBotton(0);
+                $('#midcard').html(cardhtml2(str));
+            }
+            if(seats[seatid]==getseatid(userid)){
+                showBotton(3);
+                $('#leftcard').html(cardhtml2(str));
+            }
+            if(seatid!=getseatid(userid)&&seats[seatid]!=getseatid(userid)){
+                $('#rightcard').html(cardhtml2(str));
+            }
+
+            return;
+        }
+    }
+
+    //不要
+    function pass(){
+        type='play';
+        websocket.send(type+'@'+userid+'@'+roomid+'@'+getseatid(userid)+'@'+'-10000');
     }
 
     //抢地主逻辑  info: landowner@dolandowner@seat
     function getLandowner(info){
-        debugger;
         var strs = info.split("@");
         var landowner = strs[0];
-        var dolandowners = strs[1];
+        var dolandowners = strs[1]; //后面要展示抢地主情况需要使用该变量
         var seatids=strs[2].split("|");
         if(-1==landowner){
             if(userid==$("#user"+seats[seatids[seatids.length-1]]).html()){
@@ -133,7 +188,7 @@
             var tmp = $("#user"+landowner).html();
             $("#user"+landowner).css("color","red");
             if(userid==tmp){
-                showBotton(3);
+                showBotton(4);
             }else{
                 showBotton(0);
             }
@@ -158,18 +213,33 @@
 
     }
 
+    function cardhtml2(str) {
+        var html = "";
+        var handcard = str.split("|").sort(sortNumber);
+        console.log(handcard);
+        for(var i=0 ;i<handcard.length ;i++){
+            html+='<td width="20px" height="150px"><div id="card1">'+values[handcard[i]-1]+'<br/>'+types[handcard[i]-1]+'</div></td>'
+        }
+        return html;
+    }
+    
+    function cardhtml(str) {
+        var html = "<table>";
+        var handcard = str.split("|").sort(sortNumber);
+        console.log(handcard);
+        for(var i=0 ;i<handcard.length ;i++){
+            html+='<td width="20px" height="150px"><div id="card1">'+values[handcard[i]-1]+'<br/>'+types[handcard[i]-1]+'</div><input name="handcard" value="'+handcard[i]+'" type="checkbox"></td>'
+        }
+        html+="</table>"
+        return html;
+    }
+
     //展示手牌
     function showCard(info) {
         console.log(info);
         var strs = info.split("@");
-        var html = "";
-        var handcard = strs[0].split("|").sort(sortNumber);
-        console.log(handcard);
-        var cardnumber = strs[1].split("|");
-        for(var i=0 ;i<handcard.length ;i++){
-            html+='<td width="20px" height="150px"><div id="card1">'+values[handcard[i]-1]+'<br/>'+types[handcard[i]-1]+'</div><input name="handcard" value="'+handcard[i]+'" type="checkbox"></td>'
-        }
-        $("#myhand").html(html);
+        var cardnumber = strs[1].split("|");//手牌数量
+        $("#myhand").html(cardhtml(strs[0]));
         if(userid==$("#user0").html()){
             $("#right").html($("#user1").html()+"<br/>"+cardnumber[1]);
             $("#left").html($("#user2").html()+"<br/>"+cardnumber[2]);
@@ -218,7 +288,6 @@
     function reflushReady(info) {
         console.log(info);
         var strs = info.split("@");
-        seatid = strs[1];
         $("#user"+strs[1]).html(strs[0]);
         $("#user"+strs[1]+"R").html(strs[2]);
     }

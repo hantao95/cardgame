@@ -16,6 +16,10 @@ public class GameInfo {
     private List<Integer> play3= new ArrayList<>();
     private List<Integer> other= new ArrayList<>();//3张底牌
 
+    private CardType cardType = CardType.CardType_Null;//当前牌型
+
+    private int passtime = 0;//不要次数
+
     public GameInfo(){
         startGame();
     }
@@ -33,6 +37,27 @@ public class GameInfo {
     public String getCardNumber(){
         return play1.size()+"|"+play2.size()+"|"+play3.size();
     }
+
+    //出牌
+    public boolean putoutcard(int seatid ,List<Integer> cardList,CardType cardType){
+        if(null==cardType){
+            return false;
+        }
+        if((!this.cardType.morethan(cardType)||this.cardType.equals(CardType.CardType_Null))){
+        }else{
+            return false;
+        }
+            this.cardType = cardType;
+        switch (seatid){
+            case 0:play1.removeAll(cardList);break;
+            case 1:play2.removeAll(cardList);break;
+            case 2:play3.removeAll(cardList);break;
+        }
+        return true;
+    }
+
+
+
     //底牌给地主
     public void landowner(int seatid){
         switch(seatid){
@@ -70,6 +95,30 @@ public class GameInfo {
                 continue;
             }
         }
+    }
+
+    public void passtimeAdd(){
+        passtime++;
+    }
+
+    public void passtimeClear(){
+        passtime=0;
+    }
+
+    public boolean checkPass(){
+        return passtime==2;
+    }
+
+    public int getPasstime() {
+        return passtime;
+    }
+
+    public CardType getCardType() {
+        return cardType;
+    }
+
+    public void setCardType(CardType cardType) {
+        this.cardType = cardType;
     }
 
     public List<Integer> getPlay1() {
