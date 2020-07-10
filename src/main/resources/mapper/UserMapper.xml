@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ht.card.mapper.UserMapper">
+    <resultMap id="user" type="com.ht.card.entities.UserInfo">
+        <!--column是表的列名 property是查出来的字段值要赋给的实体对象的属性名称-->
+        <!--意味着我们采用自定义的方式进行映射-->
+        <result property="userid" column="userid"></result>
+        <result property="password" column="password"></result>
+        <result property="username" column="userName"></result>
+        <result property="remark" column="remark"></result>
+        <!--在这里把role表的roleName列的值赋给了User类的userRoleName属性-->
+        <result property="queryInfo" column="queryInfo"></result>
+    </resultMap>
+
+
+	<select id="getInfo" parameterType="java.lang.String" resultType="com.ht.card.entities.UserInfo">
+        select a.* from user_info a  where a.userid = #{id}
+    </select>
+    
+    <select id="getRInfo" parameterType="java.lang.String" resultMap="user">
+        select a.*,b.queryInfo from user_info a left join user_relative b on a.userid=b.userid  where a.userid = #{id}
+    </select>
+
+
+</mapper>

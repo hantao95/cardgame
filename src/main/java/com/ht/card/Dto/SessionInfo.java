@@ -1,6 +1,5 @@
-package com.ht.card.entities;
+package com.ht.card.Dto;
 
-import javax.servlet.http.HttpSession;
 import javax.websocket.Session;
 import java.util.Objects;
 

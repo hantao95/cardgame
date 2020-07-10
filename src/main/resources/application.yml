@@ -4,6 +4,17 @@ server:
   servlet:
     context-path: /ht
 spring:
+  datasource:
+     type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
+     driver-class-name: com.mysql.cj.jdbc.Driver                # 数据库驱动
+     url: jdbc:mysql://localhost:3306/demo?characterEncoding=utf-8&useSSL=false
+     username: demo
+     password: 111111
+     dbcp2:
+       min-idle: 5                                           # 数据库连接池的最小维持连接数
+       initial-size: 5                                       # 初始化连接数
+       max-total: 5                                          # 最大连接数
+       max-wait-millis: 200                                  # 等待连接获取的最大超时时间
   thymeleaf:
     cache: false
   messages:
@@ -17,3 +28,7 @@ spring:
       cache: false    #页面不加载缓存，修改即时生效
   main:
       allow-bean-definition-overriding: true #当遇到同样名字的时候，是否允许覆盖注册
+
+mybatis-plus:
+  mapper-locations: classpath*:mapper/*Mapper.xml  # mapper映射文件
+  type-aliases-package: com.ht.card.entities            # 所有Entity别名类所在包

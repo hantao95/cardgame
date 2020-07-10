@@ -1,4 +1,4 @@
-package com.ht.card.entities;
+package com.ht.card.Dto;
 
 import java.util.ArrayList;
 import java.util.Arrays;

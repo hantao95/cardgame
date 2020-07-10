@@ -1,4 +1,4 @@
-package com.ht.card.entities;
+package com.ht.card.Dto;
 
 /**
  * 扑克牌

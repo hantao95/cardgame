@@ -1,7 +1,7 @@
 package com.ht.card.init;
 
 import com.ht.card.Constant.CardConstant;
-import com.ht.card.entities.Card;
+import com.ht.card.Dto.Card;
 
 import java.util.HashMap;
 import java.util.Map;

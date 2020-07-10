@@ -15,13 +15,16 @@
     </head>
 
 	<body class="text-center">
+	<div>
+		<button class="btn btn-lg btn-primary btn-block" onclick="register()" th:text="#{login.btn2}">Sign in</button>
+	</div>
 		<form class="form-signin" action="main.html" th:action="@{/login.do}" method="post">
 			<img class="mb-4" src="/static/asserts/img/bootstrap-solid.svg" th:src="@{/static/asserts/img/bootstrap-solid.svg}" alt="" width="72" height="72">
 			<h1 class="h3 mb-3 font-weight-normal" th:text="#{login.tip}">Please sign in</h1>
 			<p style="color: red" th:text="${msg}" th:if="${not #strings.isEmpty(msg)}"></p>
-			<label class="sr-only" th:text="#{login.userid}">Username</label>	<input type="text" name="userid" class="form-control" placeholder="userid" th:placeholder="#{login.userid}"required="" autofocus="">
+			<label class="sr-only" th:text="#{login.userid}">Username</label>	<input type="text" name="userid" id="userid" class="form-control" placeholder="userid" th:placeholder="#{login.userid}"required="" autofocus="">
 			<label class="sr-only" th:text="#{login.password}">Password</label>
-			<input type="password" name="password" class="form-control" placeholder="Password" th:placeholder="#{login.password}"required="" value="123456">
+			<input type="password" name="password" class="form-control" placeholder="Password"  id="password" th:placeholder="#{login.password}"required="" value="123456">
             <h2 th:text="${param.userInfo} "th:unless="${param.userInfo == null}"></h2>
 			<div class="checkbox mb-3">
 				<label>
@@ -34,8 +37,29 @@
 			<a class="btn btn-sm" th:href="@{/index.html?l=en_US}">English</a>-->
 		</form>
 
+
 	</body>
 	<script type="text/javascript">
+		function register(){
+			     var url="../ht/register.do";
+                 var userid=$("#userid").val();
+                 var password=$("#password").val();
+            var data=JSON.stringify({
+                "userid":userid,
+				"password":password
+			});
+            $.ajax({
+                        "url":url,
+                        "data":data,
+                		"contentType" : "application/json",
+                        "type":"post",
+                        "dataType":"json",
+                        "success":function(data){
+                            console.log(date);
+                            alert(data.data);
+                        }
+                    });
+		}
         //console.log()
         // $(document).ready(function(){
         //     var url="../clud/auto_login.do";

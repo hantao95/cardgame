@@ -1,4 +1,4 @@
-package com.ht.card.entities;
+package com.ht.card.Dto;
 
 public class ResponseResult<T> {
  private String message;

@@ -3,8 +3,8 @@ package com.ht.card.websocket;
 
 import com.ht.card.Config.HttpSessionConfigurator;
 import com.ht.card.Constant.CardConstant;
+import com.ht.card.Dto.*;
 import com.ht.card.Util.StringUtil;
-import com.ht.card.entities.*;
 import org.springframework.stereotype.Component;
 
 import javax.servlet.http.HttpSession;

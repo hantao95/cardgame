@@ -1,4 +1,4 @@
-package com.ht.card.entities;
+package com.ht.card.Dto;
 
 //打出的牌型
 public class CardType {

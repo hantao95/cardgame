@@ -1,4 +1,4 @@
-package com.ht.card.entities;
+package com.ht.card.Dto;
 
 /**
  * 准备信息，用于保存每个玩家的准备情况

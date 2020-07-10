@@ -1,6 +1,6 @@
 package com.ht.card.websocket;
 
-import com.ht.card.entities.*;
+import com.ht.card.Dto.*;
 
 public class MessageResolve {
     //解析信息

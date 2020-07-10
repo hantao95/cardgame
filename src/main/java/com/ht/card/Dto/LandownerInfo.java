@@ -1,4 +1,4 @@
-package com.ht.card.entities;
+package com.ht.card.Dto;
 
 import com.ht.card.Util.StringUtil;
 import com.ht.card.websocket.GameLogic;

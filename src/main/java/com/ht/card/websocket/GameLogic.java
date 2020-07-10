@@ -2,8 +2,8 @@ package com.ht.card.websocket;
 
 import com.ht.card.Constant.CardConstant;
 import com.ht.card.Util.StringUtil;
-import com.ht.card.entities.Card;
-import com.ht.card.entities.CardType;
+import com.ht.card.Dto.Card;
+import com.ht.card.Dto.CardType;
 import com.ht.card.init.Cache;
 
 import java.util.*;

@@ -41,7 +41,7 @@ public class MyMvcConfig implements WebMvcConfigurer {
         //添加拦截规则
         InterceptorRegistration interceptorRegistration = registry.addInterceptor(LoginHandlerInterceptor());
         //放行路径  此处需要把静态资源的路径写上
-        interceptorRegistration.excludePathPatterns("/static/**","/webjars/**","/index.html","/","/hello","/login.do");
+        interceptorRegistration.excludePathPatterns("/static/**","/webjars/**","/index.html","/","/hello","/login.do","/register.do");
         //拦截路径
         interceptorRegistration.addPathPatterns("/**");
     }
